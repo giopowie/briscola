@@ -28,9 +28,10 @@ def normalize(value: Any) -> str:
 def placement_number(value: Any) -> int | None:
     if isinstance(value, int) and not isinstance(value, bool):
         return value if 1 <= value <= 12 else None
+    text = normalize(value)
     match = re.fullmatch(
-        r"\s*(\d{1,2})\s*(?:°|º|o)?\s*(?:(?:posto|classificato|classifica))?\s*",
-        str(value or ""),
+        r"\s*(\d{1,2})\s*(?:°|º|o|º|°)?\s*(?:(?:posto|classificato|classifica))?\s*",
+        text,
         flags=re.IGNORECASE,
     )
     if not match:
@@ -56,14 +57,18 @@ def parse_date(value: Any, row_number: int) -> str:
 
 def find_results_layout(sheet: Any) -> tuple[int, int, dict[int, int], int]:
     for row_number in range(1, min(sheet.max_row, 40) + 1):
-        headers = {
-            column: normalize(sheet.cell(row_number, column).value)
+        row_values = {
+            column: sheet.cell(row_number, column).value
             for column in range(1, sheet.max_column + 1)
         }
+        headers = {
+            column: normalize(value)
+            for column, value in row_values.items()
+        }
         placements = {
-            placement_number(sheet.cell(row_number, column).value): column
-            for column in range(1, sheet.max_column + 1)
-            if placement_number(sheet.cell(row_number, column).value) is not None
+            number: column
+            for column, value in row_values.items()
+            if (number := placement_number(value)) is not None
         }
         joker_columns = [
             column for column, header in headers.items()
@@ -71,17 +76,20 @@ def find_results_layout(sheet: Any) -> tuple[int, int, dict[int, int], int]:
         ]
         date_columns = [
             column for column, header in headers.items()
-            if header in {"data", "date", "giornata", "data giornata"}
+            if header in {"data", "date", "data giornata"}
         ]
-        if (
-            set(placements) == EXPECTED_PLACEMENTS
-            and len(joker_columns) == 1
-            and len(date_columns) <= 1
-        ):
+        if not date_columns:
+            date_columns = [
+                column for column, header in headers.items()
+                if header == "giornata"
+            ]
+        if set(placements) == EXPECTED_PLACEMENTS and len(joker_columns) == 1 and len(date_columns) == 1:
             date_column = date_columns[0] if len(date_columns) == 1 else 1
             return row_number, date_column, placements, joker_columns[0]
     raise ValueError(
-        "Non trovo nell'intestazione di 'Risultati' le colonne Data, 1°–11° e Jolly."
+        "Non trovo nell'intestazione di 'Risultati' le colonne Data, 1°–11° e Jolly. "
+        "Controlla che l'intestazione sia nella stessa riga e che i nomi delle colonne "
+        "siano Data, 1°, 2°…11° e Jolly."
     )
 
 
