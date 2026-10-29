@@ -4,7 +4,9 @@ Pagina statica in italiano, senza framework o dipendenze. La pubblicazione viene
 
 ## Aggiornare i risultati dall'Excel
 
-Carica il file **`Briscola_League_Automatica.xlsx`** nella cartella principale oppure in `data/`; il workflow riconosce entrambe le posizioni. Mantieni le schede `Risultati`, `Classifica`, `Dettaglio` e `Regole` del modello. Nella scheda `Risultati`, conserva una riga per ciascuna delle 12 date, intestazioni per data, piazzamenti `1°`–`11°` e una colonna `Jolly`. Scrivi in ogni colonna di piazzamento il nome del giocatore arrivato in quella posizione; nella colonna `Jolly`, scrivi il nome del giocatore che ha usato il jolly o lascia vuota la cella. Lascia vuoti i piazzamenti non assegnati e le assenze.
+Carica il file **`Briscola_League_Automatica.xlsx`** nella cartella principale oppure in `data/`; il workflow riconosce entrambe le posizioni. Nella scheda `Risultati`, i giocatori sono sulle righe e le 12 date sulle colonne: scegli il piazzamento dal menu a tendina accanto al nome, lascia la cella vuota per un'assenza e seleziona il giocatore jolly nella riga apposita in fondo. Non assegnare lo stesso piazzamento due volte nella stessa giornata; le duplicazioni vengono evidenziate e bloccano l'importazione. La scheda `Classifica` aggiorna presenze, piazzamenti, punti lordi, scarti e totale netto; la scheda `Dettaglio` mostra i punti per giocatore e giornata; la scheda `Regole` riporta l'elenco giocatori e i punti F1.
+
+Il convertitore continua a supportare anche il modello precedente con i piazzamenti in colonne.
 
 Dopo aver modificato il file Excel sul computer, salva il workbook, caricalo o sostituiscilo nel repository GitHub e registra la modifica su `main` (ad esempio con un commit). GitHub Actions importerà automaticamente le 12 date e i piazzamenti, aggiornerà `data/torneo.json` e pubblicherà il sito aggiornato su GitHub Pages. Non modificare direttamente `data/torneo.json`: è generato dal foglio Excel.
 

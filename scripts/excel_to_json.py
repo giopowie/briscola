@@ -93,6 +93,110 @@ def find_results_layout(sheet: Any) -> tuple[int, int, dict[int, int], int]:
     )
 
 
+def find_matrix_layout(
+    sheet: Any,
+    players: list[dict[str, str]],
+) -> tuple[int, dict[int, int], int, dict[str, int]]:
+    player_ids = {normalize(player["name"]): player["id"] for player in players}
+    for row_number in range(1, min(sheet.max_row, 40) + 1):
+        if normalize(sheet.cell(row_number, 1).value) not in {"giocatore", "giocatori", "player"}:
+            continue
+        dates: dict[int, int] = {}
+        for column in range(2, sheet.max_column + 1):
+            try:
+                date_value = parse_date(sheet.cell(row_number, column).value, row_number)
+            except ValueError:
+                continue
+            dates[column] = column
+        if len(dates) != EXPECTED_ROUNDS or len({parse_date(sheet.cell(row_number, column).value, row_number) for column in dates}) != EXPECTED_ROUNDS:
+            continue
+
+        player_rows: dict[str, int] = {}
+        joker_rows: list[int] = []
+        for candidate_row in range(row_number + 1, sheet.max_row + 1):
+            label = normalize(sheet.cell(candidate_row, 1).value)
+            if label.startswith("jolly") or label == "giocatore jolly":
+                joker_rows.append(candidate_row)
+            elif label in player_ids:
+                player_rows[player_ids[label]] = candidate_row
+            elif label.startswith("serata valida"):
+                continue
+            elif label:
+                raise ValueError(f"Giocatore non riconosciuto nella matrice 'Risultati': {sheet.cell(candidate_row, 1).value!r}.")
+        if len(player_rows) != len(players) or len(joker_rows) != 1:
+            raise ValueError(
+                "Nel foglio 'Risultati' a matrice devono comparire una volta tutti i giocatori "
+                "iscritti e una sola riga 'Jolly'."
+            )
+        return row_number, dates, joker_rows[0], player_rows
+    raise ValueError(
+        "Il foglio 'Risultati' non contiene né l'intestazione classica né la matrice "
+        "con una riga 'Giocatore', 12 date in colonna e una riga 'Jolly'."
+    )
+
+
+def matrix_results(
+    sheet: Any,
+    players: list[dict[str, str]],
+    header_row: int,
+    date_columns: dict[int, int],
+    joker_row: int,
+    player_rows: dict[str, int],
+) -> tuple[list[str], list[dict[str, Any]]]:
+    player_ids = {normalize(player["name"]): player["id"] for player in players}
+    date_to_column = {
+        parse_date(sheet.cell(header_row, column).value, header_row): column
+        for column in date_columns
+    }
+    if len(date_to_column) != EXPECTED_ROUNDS:
+        raise ValueError("Le 12 date della matrice devono essere tutte distinte e valide.")
+
+    rounds: list[dict[str, Any]] = []
+    joker_users: set[str] = set()
+    for round_date, column in sorted(date_to_column.items()):
+        placements: list[str | None] = [None] * 12
+        for player_id, row_number in player_rows.items():
+            value = sheet.cell(row_number, column).value
+            if value in (None, ""):
+                continue
+            placement = placement_number(value)
+            if placement is None:
+                raise ValueError(
+                    f"Piazzamento non valido per {sheet.cell(row_number, 1).value!r} "
+                    f"nella giornata del {round_date}: {value!r}"
+                )
+            if placements[placement - 1] is not None:
+                raise ValueError(
+                    f"Piazzamento {placement} duplicato nella giornata del {round_date}."
+                )
+            placements[placement - 1] = player_id
+
+        joker_value = sheet.cell(joker_row, column).value
+        joker_player_id = None
+        if joker_value not in (None, ""):
+            joker_player_id = player_ids.get(normalize(joker_value))
+            if joker_player_id is None:
+                raise ValueError(
+                    f"Giocatore jolly non riconosciuto nella giornata del {round_date}: {joker_value!r}"
+                )
+            if joker_player_id not in placements:
+                raise ValueError(
+                    f"Il giocatore jolly {joker_value!r} non ha un piazzamento "
+                    f"nella giornata del {round_date}."
+                )
+            if joker_player_id in joker_users:
+                raise ValueError(f"{joker_value!r} risulta aver usato il jolly più di una volta.")
+            joker_users.add(joker_player_id)
+
+        rounds.append({
+            "date": round_date,
+            "placements": placements,
+            "jokerPlayerId": joker_player_id,
+        })
+
+    return list(sorted(date_to_column)), rounds
+
+
 def workbook_results(workbook_path: Path, players: list[dict[str, str]]) -> tuple[list[str], list[dict[str, Any]]]:
     workbook = load_workbook(workbook_path, data_only=True, read_only=True)
     sheet_names = {normalize(sheet_name): sheet_name for sheet_name in workbook.sheetnames}
@@ -100,6 +204,20 @@ def workbook_results(workbook_path: Path, players: list[dict[str, str]]) -> tupl
         raise ValueError("Il file Excel deve contenere un foglio chiamato 'Risultati'.")
 
     sheet = workbook[sheet_names["risultati"]]
+    matrix_layout: tuple[int, dict[int, int], int, dict[str, int]] | None = None
+    try:
+        matrix_layout = find_matrix_layout(sheet, players)
+    except ValueError as matrix_error:
+        try:
+            find_results_layout(sheet)
+        except ValueError:
+            raise matrix_error
+    if matrix_layout is not None:
+        try:
+            return matrix_results(sheet, players, *matrix_layout)
+        finally:
+            workbook.close()
+
     header_row, date_column, placement_columns, joker_column = find_results_layout(sheet)
     player_ids = {normalize(player["name"]): player["id"] for player in players}
     rows_by_date: dict[str, dict[str, Any]] = {}
