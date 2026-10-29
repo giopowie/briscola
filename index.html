@@ -69,6 +69,10 @@
           </div>
           <span class="live-label"><span></span> Si aggiorna a ogni gara</span>
         </div>
+        <div class="standings-controls" role="group" aria-label="Ordina la classifica">
+          <button type="button" class="standings-tab" data-ranking="net" aria-pressed="true">Punti netti · ufficiale</button>
+          <button type="button" class="standings-tab" data-ranking="gross" aria-pressed="false">Punti lordi</button>
+        </div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -80,13 +84,15 @@
                 <th scope="col">Secondi</th>
                 <th scope="col">Terzi</th>
                 <th scope="col">Punti lordi</th>
+                <th scope="col">Jolly</th>
+                <th scope="col">Bonus jolly</th>
                 <th scope="col">Scarto 1</th>
                 <th scope="col">Scarto 2</th>
                 <th scope="col" class="points-heading">Punti netti</th>
               </tr>
             </thead>
             <tbody id="standings-body">
-              <tr><td colspan="10" class="loading-cell">Caricamento della classifica…</td></tr>
+              <tr><td colspan="12" class="loading-cell">Caricamento della classifica…</td></tr>
             </tbody>
           </table>
         </div>

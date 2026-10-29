@@ -1,5 +1,8 @@
 const dataUrl = "./data/torneo.json";
 const errorBox = document.querySelector("#load-error");
+let currentRanking = "net";
+let currentStandings = [];
+let currentValidRounds = [];
 
 function showError(message) {
   errorBox.textContent = message;
@@ -61,6 +64,7 @@ function getStandings(data, rounds) {
     thirds: 0,
     scores: [],
     jokers: 0,
+    jokerBonus: 0,
   }]));
 
   for (const round of rounds) {
@@ -68,12 +72,16 @@ function getStandings(data, rounds) {
       if (!playerId) continue;
       const entry = stats.get(playerId);
       const placement = index + 1;
+      const usedJoker = round.jokerPlayerId === playerId;
       entry.attendance += 1;
-      entry.scores.push(scoreFor(data, placement, round.jokerPlayerId === playerId));
+      entry.scores.push(scoreFor(data, placement, usedJoker));
       if (placement === 1) entry.wins += 1;
       if (placement === 2) entry.seconds += 1;
       if (placement === 3) entry.thirds += 1;
-      if (round.jokerPlayerId === playerId) entry.jokers += 1;
+      if (usedJoker) {
+        entry.jokers += 1;
+        entry.jokerBonus += data.tournament.f1PointsByPlacement[placement - 1] ?? 0;
+      }
     }
 
     const present = new Set(round.placements.filter(Boolean));
@@ -93,8 +101,7 @@ function getStandings(data, rounds) {
         discarded,
         net: gross - discarded.reduce((sum, score) => sum + score, 0),
       };
-    })
-    .sort((a, b) => b.net - a.net || a.player.name.localeCompare(b.player.name, "it"));
+    });
 }
 
 function escapeHtml(value) {
@@ -107,20 +114,24 @@ function escapeHtml(value) {
   })[character]);
 }
 
-function renderStandings(standings, validRounds) {
+function renderStandings(standings, validRounds, ranking = currentRanking) {
   const body = document.querySelector("#standings-body");
   const note = document.querySelector("#standings-note");
   if (validRounds.length === 0) {
-    body.innerHTML = '<tr><td colspan="10" class="loading-cell">La classifica prenderà forma dopo la prima serata valida.</td></tr>';
+    body.innerHTML = '<tr><td colspan="12" class="loading-cell">La classifica prenderà forma dopo la prima serata valida.</td></tr>';
     note.textContent = "Nessun risultato è stato ancora caricato.";
     return;
   }
 
+  const scoreKey = ranking === "gross" ? "gross" : "net";
+  const orderedStandings = [...standings].sort((a, b) =>
+    b[scoreKey] - a[scoreKey] ||
+    a.player.name.localeCompare(b.player.name, "it"));
   let previousPoints = null;
   let rank = 0;
-  body.innerHTML = standings.map((entry, index) => {
-    if (entry.net !== previousPoints) rank = index + 1;
-    previousPoints = entry.net;
+  body.innerHTML = orderedStandings.map((entry, index) => {
+    if (entry[scoreKey] !== previousPoints) rank = index + 1;
+    previousPoints = entry[scoreKey];
     const firstDiscard = entry.discarded[0] ?? "—";
     const secondDiscard = entry.discarded[1] ?? "—";
     return `<tr>
@@ -131,12 +142,16 @@ function renderStandings(standings, validRounds) {
       <td>${entry.seconds}</td>
       <td>${entry.thirds}</td>
       <td>${entry.gross}</td>
+      <td>${entry.jokers}</td>
+      <td>${entry.jokerBonus}</td>
       <td>${firstDiscard}</td>
       <td>${secondDiscard}</td>
       <td class="points-cell">${entry.net}</td>
     </tr>`;
   }).join("");
-  note.textContent = `Punti netti = punti lordi meno i due risultati peggiori delle serate valide, assenze incluse. Jolly usati: raddoppiano solo i punti F1. Serate valide: ${validRounds.length}.`;
+  note.textContent = ranking === "gross"
+    ? `Ordinata per punti lordi: presenza e F1 inclusi; il jolly raddoppia solo F1. Il bonus jolly mostra i punti F1 aggiuntivi. Serate valide: ${validRounds.length}.`
+    : `Ordinata per punti netti: punti lordi meno i due risultati peggiori delle serate valide, assenze incluse. Il bonus jolly è già compreso nei punti lordi. Serate valide: ${validRounds.length}.`;
 }
 
 function formatDate(isoDate) {
@@ -152,6 +167,8 @@ function render(data) {
   validateData(data);
   const validRounds = getValidRounds(data);
   const standings = getStandings(data, validRounds);
+  currentStandings = standings;
+  currentValidRounds = validRounds;
 
   document.querySelector("#player-count").textContent = data.players.length;
   document.querySelector("#round-count").textContent = data.calendar.length;
@@ -166,6 +183,16 @@ function render(data) {
   renderStandings(standings, validRounds);
 }
 
+document.querySelectorAll(".standings-tab").forEach((button) => {
+  button.addEventListener("click", () => {
+    currentRanking = button.dataset.ranking;
+    document.querySelectorAll(".standings-tab").forEach((tab) => {
+      tab.setAttribute("aria-pressed", String(tab === button));
+    });
+    renderStandings(currentStandings, currentValidRounds, currentRanking);
+  });
+});
+
 async function loadTournament() {
   try {
     const response = await fetch(dataUrl);
@@ -174,7 +201,7 @@ async function loadTournament() {
   } catch (error) {
     showError(`Non è stato possibile caricare i dati del torneo: ${error.message}`);
     document.querySelector("#standings-body").innerHTML =
-      '<tr><td colspan="10" class="loading-cell">Classifica non disponibile.</td></tr>';
+      '<tr><td colspan="12" class="loading-cell">Classifica non disponibile.</td></tr>';
     document.querySelector("#calendar-list").innerHTML =
       '<li class="loading-cell">Calendario non disponibile.</li>';
     document.querySelector("#roster-list").innerHTML =
