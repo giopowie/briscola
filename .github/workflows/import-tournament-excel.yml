@@ -1,0 +1,86 @@
+name: Import tournament results from Excel
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - Briscola_League_Automatica.xlsx
+      - data/Briscola_League_Automatica.xlsx
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: tournament-pages
+  cancel-in-progress: false
+
+jobs:
+  import-results:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Excel reader
+        run: python -m pip install "openpyxl>=3.1,<4"
+
+      - name: Locate workbook
+        id: workbook
+        run: |
+          if [ -f Briscola_League_Automatica.xlsx ]; then
+            echo "path=Briscola_League_Automatica.xlsx" >> "$GITHUB_OUTPUT"
+          elif [ -f data/Briscola_League_Automatica.xlsx ]; then
+            echo "path=data/Briscola_League_Automatica.xlsx" >> "$GITHUB_OUTPUT"
+          else
+            echo "Briscola_League_Automatica.xlsx was not found in the repository root or data/." >&2
+            exit 1
+          fi
+
+      - name: Convert workbook to site data
+        run: >-
+          python scripts/excel_to_json.py
+          --workbook "${{ steps.workbook.outputs.path }}"
+          --data data/torneo.json
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Prepare site files
+        run: |
+          mkdir -p _site/data
+          cp index.html styles.css app.js _site/
+          cp data/torneo.json _site/data/
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy site
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Commit updated site data
+        run: |
+          if git diff --quiet -- data/torneo.json; then
+            echo "I risultati non sono cambiati."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/torneo.json
+          git commit -m "Update tournament results from Excel"
+          git push

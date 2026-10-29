@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#153d32">
+    <meta name="description" content="Calendario, risultati e classifica del torneo di briscola in cinque.">
+    <title>Torneo di briscola in cinque</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#inizio" aria-label="Torneo di briscola in cinque, inizio">
+        <span class="brand-mark" aria-hidden="true">B<span>♣</span></span>
+        <span>Il tavolo<br><strong>della briscola</strong></span>
+      </a>
+      <nav aria-label="Navigazione principale">
+        <a href="#classifica">Classifica</a>
+        <a href="#calendario">Calendario</a>
+        <a href="#regole">Regole</a>
+      </nav>
+      <span class="edition-label">Stagione 2026–27</span>
+    </header>
+
+    <main>
+      <section class="hero" id="inizio">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="eyebrow-dot"></span> Il campionato degli amici</p>
+          <h1>La briscola<br>si fa <em>seria.</em></h1>
+          <p class="hero-intro">Dodici serate, un solo jolly e un posto al tavolo che conta. Qui si tengono il punteggio e le storie migliori.</p>
+          <a class="button-link" href="#classifica">Vai alla classifica <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="orbit orbit-one"></div>
+          <div class="orbit orbit-two"></div>
+          <div class="playing-card card-back"><span>♣</span></div>
+          <div class="playing-card card-front">
+            <span class="card-corner">A<br>♠</span>
+            <span class="card-suit">♠</span>
+            <span class="card-corner card-corner-bottom">A<br>♠</span>
+          </div>
+          <span class="art-caption">IL TAVOLO È APERTO</span>
+          <span class="art-star">✳</span>
+        </div>
+        <div class="hero-footer"><span>BRISCOLA IN CINQUE</span><span>DALLE 21:00 · SI GIOCA IN COMPAGNIA</span></div>
+      </section>
+
+      <section class="quick-facts" aria-label="Informazioni sul torneo">
+        <article class="fact-card">
+          <span class="fact-icon" aria-hidden="true">♟</span>
+          <div><p>Al tavolo</p><strong id="player-count">—</strong><span>giocatori iscritti</span></div>
+        </article>
+        <article class="fact-card">
+          <span class="fact-icon" aria-hidden="true">▦</span>
+          <div><p>In calendario</p><strong id="round-count">—</strong><span>serate previste</span></div>
+        </article>
+        <article class="fact-card">
+          <span class="fact-icon" aria-hidden="true">♜</span>
+          <div><p>Risultati</p><strong id="result-count">—</strong><span>serate valide caricate</span></div>
+        </article>
+      </section>
+
+      <section class="section leaderboard-section" id="classifica">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Il tabellone</p>
+            <h2>La classifica</h2>
+          </div>
+          <span class="live-label"><span></span> Si aggiorna a ogni gara</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Pos.</th>
+                <th scope="col">Giocatore</th>
+                <th scope="col">Presenze</th>
+                <th scope="col">Vittorie</th>
+                <th scope="col">Secondi</th>
+                <th scope="col">Terzi</th>
+                <th scope="col">Punti lordi</th>
+                <th scope="col">Scarto 1</th>
+                <th scope="col">Scarto 2</th>
+                <th scope="col" class="points-heading">Punti netti</th>
+              </tr>
+            </thead>
+            <tbody id="standings-body">
+              <tr><td colspan="10" class="loading-cell">Caricamento della classifica…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note" id="standings-note">I punti appariranno dopo il caricamento dei primi risultati.</p>
+      </section>
+
+      <section class="section details-grid">
+        <article class="detail-panel calendar-panel" id="calendario">
+          <div class="section-heading compact-heading">
+            <div><p class="eyebrow">Segna le date</p><h2>Il calendario</h2></div>
+            <span class="panel-symbol" aria-hidden="true">✳</span>
+          </div>
+          <p class="panel-intro">Si comincia alle 21:00. Dodici appuntamenti per decidere chi comanda davvero al tavolo.</p>
+          <ol class="calendar-list" id="calendar-list">
+            <li class="loading-cell">Caricamento del calendario…</li>
+          </ol>
+        </article>
+
+        <article class="detail-panel rules-panel" id="regole">
+          <div class="section-heading compact-heading">
+            <div><p class="eyebrow">Poche regole, buone</p><h2>Come si gioca</h2></div>
+            <span class="panel-symbol" aria-hidden="true">♣</span>
+          </div>
+          <ul class="rules-list">
+            <li><span class="rule-number">01</span><span>La serata è valida con almeno <strong>5 giocatori</strong>.</span></li>
+            <li><span class="rule-number">02</span><span>In doppio tavolo, i primi due di ciascun tavolo e il miglior terzo passano al tavolo A. Il miglior terzo si determina con i punti medi per mano.</span></li>
+            <li><span class="rule-number">03</span><span>La finale A assegna i posti 1–5; la finale B dal 6° in poi.</span></li>
+            <li><span class="rule-number">04</span><span>Ogni serata completata vale <strong>5 punti presenza</strong>, più i punti F1 del piazzamento. I due risultati peggiori, assenze incluse, si scartano.</span></li>
+            <li><span class="rule-number">05</span><span>Un solo jolly per tutto il torneo: annunciato prima della prima mano, raddoppia solo i punti F1, non la presenza.</span></li>
+          </ul>
+          <div class="points-scale">
+            <span>PUNTI TOTALI PER PIAZZAMENTO (F1 + PRESENZA)</span>
+            <p><strong>1° 30</strong><i>·</i> 2° 23<i>·</i> 3° 20<i>·</i> 4° 17<i>·</i> 5° 15<i>·</i> 6° 13<i>·</i> 7° 11<i>·</i> 8° 9<i>·</i> 9° 7<i>·</i> 10° 6<i>·</i> 11°/12° 5</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="roster-section">
+        <div class="section-heading compact-heading">
+          <div><p class="eyebrow">I protagonisti</p><h2>Gli iscritti</h2></div>
+          <span class="roster-count" id="roster-count">— / 12</span>
+        </div>
+        <ul class="roster-list" id="roster-list"><li class="loading-cell">Caricamento dei giocatori…</li></ul>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <a class="brand footer-brand" href="#inizio"><span class="brand-mark" aria-hidden="true">B<span>♣</span></span><span>Il tavolo<br><strong>della briscola</strong></span></a>
+      <p>Le carte si mischiano. I risultati restano.</p>
+      <a class="back-to-top" href="#inizio">Torna su ↑</a>
+    </footer>
+    <div class="load-error" id="load-error" role="alert" hidden></div>
+  </body>
+</html>

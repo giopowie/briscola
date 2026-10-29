@@ -1,0 +1,41 @@
+{
+  "tournament": {
+    "name": "Torneo di briscola in cinque",
+    "season": "2026–2027",
+    "playerLimit": 12,
+    "startTime": "21:00",
+    "minimumPlayers": 5,
+    "presencePoints": 5,
+    "f1PointsByPlacement": [25, 18, 15, 12, 10, 8, 6, 4, 2, 1, 0, 0],
+    "discardedResults": 2,
+    "jokerMultiplier": 2
+  },
+  "players": [
+    { "id": "fanfo", "name": "Fanfo" },
+    { "id": "generale", "name": "Generale" },
+    { "id": "giopowie", "name": "Giopowie" },
+    { "id": "lorenzo", "name": "Lorenzo" },
+    { "id": "maldo", "name": "Maldo" },
+    { "id": "muso", "name": "Muso" },
+    { "id": "piero", "name": "Piero" },
+    { "id": "salado", "name": "Salado" },
+    { "id": "torre", "name": "Torre" },
+    { "id": "ube", "name": "Ube" },
+    { "id": "uccio", "name": "Uccio" }
+  ],
+  "calendar": [
+    "2026-10-29",
+    "2026-11-12",
+    "2026-11-26",
+    "2026-12-10",
+    "2027-01-07",
+    "2027-01-21",
+    "2027-02-04",
+    "2027-02-18",
+    "2027-03-04",
+    "2027-03-18",
+    "2027-04-01",
+    "2027-04-15"
+  ],
+  "rounds": []
+}
