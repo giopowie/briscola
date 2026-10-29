@@ -7,6 +7,11 @@ on:
     paths:
       - Briscola_League_Automatica.xlsx
       - data/Briscola_League_Automatica.xlsx
+  pull_request:
+    paths:
+      - .github/workflows/import-tournament-excel.yml
+      - scripts/excel_to_json.py
+      - tests/**
   workflow_dispatch:
 
 permissions:
@@ -19,12 +24,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  import-results:
-    if: github.ref == 'refs/heads/main'
+  test-importer:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -36,6 +37,20 @@ jobs:
 
       - name: Install Excel reader
         run: python -m pip install "openpyxl>=3.1,<4"
+
+      - name: Test Excel importer
+        run: python -m unittest discover -s tests -v
+
+  import-results:
+    if: github.ref == 'refs/heads/main'
+    needs: test-importer
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
 
       - name: Locate workbook
         id: workbook
