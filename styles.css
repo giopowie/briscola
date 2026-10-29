@@ -63,6 +63,10 @@ h1 em, .prize-strip h2 em { color: #e3bd70; font-weight: 600; }
 .section-heading .eyebrow { margin-bottom: 7px; }
 .live-label { display: inline-flex; align-items: center; gap: 8px; padding: 8px 11px; background: #e7eee6; color: #4a6955; font-size: 9px; }
 .live-label span { width: 6px; height: 6px; background: #779978; }
+.standings-controls { display: flex; gap: 7px; margin: -7px 0 14px; }
+.standings-tab { padding: 9px 13px; border: 1px solid #dcd8cc; background: transparent; color: #647166; cursor: pointer; font: inherit; font-size: 10px; transition: background-color .18s ease, color .18s ease, border-color .18s ease; }
+.standings-tab[aria-pressed="true"] { border-color: var(--green); background: var(--green); color: var(--paper); }
+.standings-tab:focus-visible { outline: 2px solid #bd8f42; outline-offset: 2px; }
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; background: var(--paper); }
 thead { background: #eae8dd; }
@@ -146,7 +150,8 @@ td.points-cell { color: var(--green); font-family: var(--serif); font-size: 17px
   .section-heading { align-items: flex-start; gap: 12px; }
   .section-heading h2 { font-size: 29px; }
   .live-label { max-width: 130px; font-size: 8px; }
-  table { min-width: 760px; }
+  table { min-width: 900px; }
+  .standings-controls { flex-wrap: wrap; }
   .details-grid { gap: 12px; padding: 0 3px; }
   .detail-panel { padding: 24px 20px; }
   .calendar-list { gap: 0 8px; }
